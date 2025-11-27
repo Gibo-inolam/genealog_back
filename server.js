@@ -3,6 +3,7 @@ import express from 'express';
 import db from "./db/db.js"
 import cors from 'cors';
 import personneRoutes from './routes/personne.route.js';
+import userRoutes from './routes/user.route.js'
 
 
 
@@ -23,3 +24,4 @@ db().then(() => {
 
 // routes----------
 app.use('/personne', personneRoutes);
+app.use('/user', userRoutes);
