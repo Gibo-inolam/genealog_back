@@ -36,6 +36,10 @@ const personneSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Personne'
     }],
+    image: {
+      type: String,
+      default: null
+    }
 }, { timestamps: true });
 
 export default mongoose.model('Personne', personneSchema);

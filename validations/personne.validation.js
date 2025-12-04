@@ -20,12 +20,13 @@ export default function personneValidation(body){
       deces: joi.string().allow(null),
       lieuNaissance: joi.string().allow(null),
       lieuDeces: joi.string().allow(null),
+      image: joi.string().allow(null),
       mid: objectId().allow(null),
       fid: objectId().allow(null),
       pids: joi.array().items(objectId()).default([])
       
     })
-
+    
     const personneUpdate = joi.object({
       nom: joi.string(),
       prenom: joi.string(),
@@ -34,6 +35,7 @@ export default function personneValidation(body){
       deces: joi.string().allow(null),
       lieuNaissance: joi.string().allow(null),
       lieuDeces: joi.string().allow(null),
+      image: joi.string().allow(null),
       mid: objectId().allow(null),
       fid: objectId().allow(null),
       pids: joi.array().items(objectId()).default([])
