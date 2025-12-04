@@ -60,7 +60,7 @@ const getAllPersonnes = async(req, res) => {
                 mid: personne.mid,
                 fid: personne.fid,
                 pids: personne.pids,
-                image: personne.image ? "http://localhost:3000/uploads/"+personne.image : null
+                image: personne.image ? "https://genealog-back.onrender.com/uploads/"+personne.image : null
             })
         }
         return res.status(200).json(nodes)
