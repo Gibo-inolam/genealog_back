@@ -5,11 +5,11 @@ import cors from 'cors';
 import personneRoutes from './routes/personne.route.js';
 import userRoutes from './routes/user.route.js';
 import pictureRoutes from './routes/picture.route.js';
-import path from "path";
-import { fileURLToPath } from "url";
+// import path from "path";
+// import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 
 
@@ -33,4 +33,4 @@ app.use('/personne', personneRoutes);
 app.use('/user', userRoutes);
 app.use('/picture', pictureRoutes);
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));

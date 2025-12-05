@@ -14,7 +14,8 @@ export default function pictureValidation(body){
     
 
     const pictureCreate = joi.object({
-      image: joi.string().required(),
+      image: joi.string().uri().required(),
+      imagePublicId: joi.string().optional(),
       alt: joi.string().required(),
       membre: objectId().required()
     })

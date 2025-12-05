@@ -12,6 +12,11 @@ export default function personneValidation(body){
         return value;
     }, "ObjectId validation");
 
+    const cloudinaryImageSchema = joi.object({
+      public_id: joi.string().allow(null),
+      url: joi.string().uri().allow(null)
+    }).allow(null);
+
     const personneCreate = joi.object({
       nom: joi.string(),
       prenom: joi.string(),
@@ -20,7 +25,7 @@ export default function personneValidation(body){
       deces: joi.string().allow(null),
       lieuNaissance: joi.string().allow(null),
       lieuDeces: joi.string().allow(null),
-      image: joi.string().allow(null),
+      image: cloudinaryImageSchema,
       mid: objectId().allow(null),
       fid: objectId().allow(null),
       pids: joi.array().items(objectId()).default([])
@@ -35,7 +40,7 @@ export default function personneValidation(body){
       deces: joi.string().allow(null),
       lieuNaissance: joi.string().allow(null),
       lieuDeces: joi.string().allow(null),
-      image: joi.string().allow(null),
+      image: cloudinaryImageSchema,
       mid: objectId().allow(null),
       fid: objectId().allow(null),
       pids: joi.array().items(objectId()).default([])

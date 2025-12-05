@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from "url"
 import Picture from "../models/picture.model.js"
+import cloudinary, { uploadBufferToCloudinary } from "../utils/cloudinary.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -11,7 +12,7 @@ const createPersonne = async(req,res)=>{
     try {
         console.log(req.body)
         if(!req.body){
-            if(req.file){fs.unlinkSync(`./uploads/${req.file.filename}`)}
+            // if(req.file){fs.unlinkSync(`./uploads/${req.file.filename}`)}
             return res.status(400).json({message: "no data in the request"})
         }
         const body = {...req.body}
@@ -22,7 +23,11 @@ const createPersonne = async(req,res)=>{
         }
         console.log(body)
         if(req.file){
-            body.image = req.file.filename
+            const result = await uploadBufferToCloudinary(req.file.buffer, "personnes");
+            body.image = {
+                public_id: result.public_id,
+                url: result.secure_url
+            };
         }
 
         if (body.genre !== null && body.genre !== undefined) {
@@ -31,7 +36,7 @@ const createPersonne = async(req,res)=>{
         
         const {error} = personneValidation(body).personneCreate
         if(error){
-            if(req.file){fs.unlinkSync(`./uploads/${req.file.filename}`)}
+            // if(req.file){fs.unlinkSync(`./uploads/${req.file.filename}`)}
             return res.status(401).json(error.details[0].message)
         }
         const personne = new Personne(body)
@@ -60,7 +65,7 @@ const getAllPersonnes = async(req, res) => {
                 mid: personne.mid,
                 fid: personne.fid,
                 pids: personne.pids,
-                image: personne.image ? "https://genealog-back.onrender.com/uploads/"+personne.image : null
+                image: personne.image.url
             })
         }
         return res.status(200).json(nodes)
@@ -86,7 +91,7 @@ const getPersonneById = async(req,res) => {
 const updatePersonne = async(req,res) => {
     try {
         if(!req.body){
-            if(req.file){fs.unlinkSync(`./uploads/${req.file.filename}`)}
+            // if(req.file){fs.unlinkSync(`./uploads/${req.file.filename}`)}
             return res.status(400).json({message: "No data in the request"})
         }
         const body = {...req.body}
@@ -99,7 +104,7 @@ const updatePersonne = async(req,res) => {
 
         const personne = await Personne.findById(req.params.id)
         if(!personne){
-            if(req.file){fs.unlinkSync(`./uploads/${req.file.filename}`)}
+            // if(req.file){fs.unlinkSync(`./uploads/${req.file.filename}`)}
             return res.status(404).json({message: "personne doesn't exist"})
         }
         
@@ -108,17 +113,23 @@ const updatePersonne = async(req,res) => {
         }
         
         if(req.file){
-            if(personne.image){
-                const imagePath = path.join('./uploads/', personne.image)
-                if (fs.existsSync(imagePath)) {
-                    fs.unlinkSync(imagePath)
-                }
+            if(personne.image?.public_id){
+                await cloudinary.uploader.destroy(personne.image.public_id)
+            
+                // const imagePath = path.join('./uploads/', personne.image)
+                // if (fs.existsSync(imagePath)) {
+                //     fs.unlinkSync(imagePath)
+            // }
             }
-            body.image = req.file.filename
+            const result = await uploadBufferToCloudinary(req.file.buffer, "personnes");
+            body.image = {
+                public_id: result.public_id,
+                url: result.secure_url
+            };
         }
         const {error} = personneValidation(body).personneUpdate
         if(error){
-            if(req.file){fs.unlinkSync(`./uploads/${req.file.filename}`)}
+            // if(req.file){fs.unlinkSync(`./uploads/${req.file.filename}`)}
             return res.status(401).json(error.details[0].message)
         }
         const updatedPersonne = await Personne.findByIdAndUpdate(req.params.id, body, {new: true})
@@ -160,19 +171,32 @@ const deletePersonne = async(req, res) => {
         }
         let pictures = await Picture.find({membre: req.params.id})
         if(pictures.length>0){
-            for(let pic of pictures){
-                const oldPath = path.join(__dirname, '../uploads/', pic.image)
-                if(fs.existsSync(oldPath)) {fs.unlinkSync(oldPath)}
-                await pic.deleteOne()
+            for(let picture of pictures){
+                // const oldPath = path.join(__dirname, '../uploads/', pic.image)
+                // if(fs.existsSync(oldPath)) {fs.unlinkSync(oldPath)}
+                // await pic.deleteOne()
+                if (picture.imagePublicId) {
+                    try {
+                        await cloudinary.uploader.destroy(picture.imagePublicId);
+                    } catch (err) {
+                        console.log("Cloudinary delete error:", err);
+                    }
+                }
+                await picture.deleteOne()
             }
         }
 
-        if (personne.image) {
-            const imagePath = path.join('./uploads/', personne.image)
-            if (fs.existsSync(imagePath)) {
-                fs.unlinkSync(imagePath)
-            }
-        }
+        // if (personne.image) {
+        //     const imagePath = path.join('./uploads/', personne.image)
+        //     if (fs.existsSync(imagePath)) {
+        //         fs.unlinkSync(imagePath)
+        //     }
+        // }
+
+        if(personne.image?.public_id){
+            await cloudinary.uploader.destroy(personne.image.public_id)
+        }        
+
         await Personne.findByIdAndDelete(req.params.id)
         return res.status(200).json({message: "personne has been deleted"})
     } catch (error) {

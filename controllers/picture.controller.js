@@ -4,6 +4,7 @@ import pictureValidation from "../validations/picture.validation.js"
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url";
+import cloudinary, { uploadBufferToCloudinary } from "../utils/cloudinary.js";
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -12,17 +13,21 @@ const createPicture = async(req,res)=>{
     try {
         console.log(req.body)
         if(!req.body){
-            if(req.file){fs.unlinkSync("./uploads/"+req.file.filename)}
+            // if(req.file){fs.unlinkSync("./uploads/"+req.file.filename)}
             return res.status(400).json({message: "No data in the request"})
         }
         const body = {...req.body}
         if(req.file){
-            body.image = req.file.filename
+            // body.image = req.file.filename
+            const result = await uploadBufferToCloudinary(req.file.buffer, "pictures");
+            body.image = result.secure_url;
+            body.imagePublicId = result.public_id
         }
+
         console.log(body)
         const {error} = pictureValidation(body).pictureCreate
         if(error){
-            if(req.file){fs.unlinkSync("./uploads/"+req.file.filename)}
+            // if(req.file){fs.unlinkSync("./uploads/"+req.file.filename)}
             return res.status(401).json(error.details[0].message)
         }
         const picture = new Picture(body)
@@ -61,9 +66,17 @@ const deletePicture = async(req, res) => {
         if(!picture){
             return res.status(404).json({message: "picture doesn't exist"})
         }
-        if(picture.image){
-            const oldPath = path.join(__dirname, '../uploads/', picture.image)
-            if(fs.existsSync(oldPath)) {fs.unlinkSync(oldPath)}
+        // if(picture.image){
+        //     const oldPath = path.join(__dirname, '../uploads/', picture.image)
+        //     if(fs.existsSync(oldPath)) {fs.unlinkSync(oldPath)}
+        // }
+         // 👉 suppression Cloudinary si imagePublicId existe
+        if (picture.imagePublicId) {
+            try {
+                await cloudinary.uploader.destroy(picture.imagePublicId);
+            } catch (err) {
+                console.log("Cloudinary delete error:", err);
+            }
         }
         await picture.deleteOne()
         return res.status(200).json({message: "picture has been deleted"})

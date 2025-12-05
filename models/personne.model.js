@@ -37,9 +37,14 @@ const personneSchema = new mongoose.Schema({
       ref: 'Personne'
     }],
     image: {
-      type: String,
-      default: null
-    }
+public_id: {
+    type: String,
+    default: null
+  },
+  url: {
+    type: String,
+    default: null
+  }    }
 }, { timestamps: true });
 
 export default mongoose.model('Personne', personneSchema);
